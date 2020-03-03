@@ -1,4 +1,4 @@
-# Official Jenkins Docker image
+# Unofficial Jenkins Docker image
 
 The Jenkins Continuous Integration and Delivery server.
 
@@ -11,7 +11,7 @@ This is a fully functional Jenkins server.
 # Usage
 
 ```
-docker run -p 8080:8080 -p 50000:50000 jenkins/jenkins:lts
+docker run -p 8080:8080 -p 50000:50000 gustavo8000br/docker-jenkins:lts
 ```
 
 NOTE: read below the _build executors_ part for the role of the `50000` port mapping.
