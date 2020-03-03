@@ -1,4 +1,4 @@
-FROM arm32v7/openjdk:8-jdk-slim
+FROM arm32v7/openjdk:7-jdk-slim
 
 RUN apt-get update && apt-get install -y git curl gpg && rm -rf /var/lib/apt/lists/*
 
