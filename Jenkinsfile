@@ -108,7 +108,7 @@ pipeline {
       steps {
         script{
           env.IMAGE = env.DOCKERHUB_IMAGE
-          env.META_TAG = env.EXT_RELEASE_CLEAN + env.EXT_VERSION + '-build-' + env.MY_TAG_NUMBER
+          env.META_TAG = env.EXT_RELEASE_CLEAN + '-' + env.EXT_VERSION + '-build-' + env.MY_TAG_NUMBER
         }
       }
     }
