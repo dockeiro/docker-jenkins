@@ -94,7 +94,12 @@ pipeline {
       steps{
         script{
           env.EXT_RELEASE_CLEAN = sh(
-            script: '''echo ${EXT_RELEASE} | sed 's/[~,%@+;:/]//g' ''',
+            script: '''echo ${EXT_RELEASE} | sed 's/[~,%@+;:/"]//g' ''',
+            returnStdout: true).trim()
+        }
+        script{
+          env.TINI_VERSION_CLEAN = sh(
+            script: '''echo ${TINI_VERSION} | sed 's/[~,%@+;:/"]//g' ''',
             returnStdout: true).trim()
         }
       }
@@ -123,7 +128,7 @@ pipeline {
       }
       steps {
         sh "docker build --no-cache --pull -t ${IMAGE}:${EXT_VARIANT}-${META_TAG} \
-        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -136,7 +141,7 @@ pipeline {
         stage('Build X86') {
           steps {
             sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${EXT_VARIANT}-${META_TAG} \
-            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+            --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
           }
         }
         stage('Build ARMHF') {
@@ -157,7 +162,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker build --no-cache --pull -f Dockerfile.armhf -t ${IMAGE}:arm32v7-${EXT_VARIANT}-${META_TAG} \
-                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+                        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
               sh "docker tag ${IMAGE}:arm32v7-${EXT_VARIANT}-${META_TAG} $DOCKERUSER/buildcache:arm32v7-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push $DOCKERUSER/buildcache:arm32v7-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
@@ -184,7 +189,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${EXT_VARIANT}-${META_TAG} \
-                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+                        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
               sh "docker tag ${IMAGE}:arm64v8-${EXT_VARIANT}-${META_TAG} $DOCKERUSER/buildcache:arm64v8-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push $DOCKERUSER/buildcache:arm64v8-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
