@@ -12,9 +12,9 @@ pipeline {
     GITHUB_TOKEN=credentials('498b4638-2d04-4ce5-832d-8a57d01d97ac')
     EXT_USER = 'jenkinsci'
     EXT_REPO = 'jenkins'
-    EXT_VARIANT = 'debian'
+    EXT_VARIANT = 'alpine'
     EXT_VERSION = 'lts'
-    MY_BRANCH = 'debian'
+    MY_BRANCH = 'alpine'
     MY_USER = 'gustavo8000br'
     MY_REPO = 'docker-jenkins'
     DOCKERHUB_IMAGE = 'gustavo8000br/docker-jenkins'
@@ -75,12 +75,12 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases/latest | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' ''',
            returnStdout: true).trim()
        }
        script{
          env.TINI_VERSION = sh(
-           script: '''curl -s https://api.github.com/repos/krallin/tini/releases/latest | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/krallin/tini/releases | jq '.[0] .name' ''',
            returnStdout: true).trim()
        }
      }
