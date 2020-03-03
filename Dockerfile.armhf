@@ -1,4 +1,4 @@
-FROM arm32v7/openjdk:8-jdk
+FROM arm32v7/openjdk:7-jdk
 
 # set version label
 ARG BUILD_DATE
