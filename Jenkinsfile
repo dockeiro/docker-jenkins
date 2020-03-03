@@ -2,10 +2,6 @@ pipeline {
   agent {
     label 'X86-64-MULTI'
   }
-  properties([
-    buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5')),
-    pipelineTriggers([cron('H H/6 * * *')]),
-])
   // Configuration for the variables used for this specific repo
   environment {
     BUILDS_DISCORD=credentials('build_webhook_url')
