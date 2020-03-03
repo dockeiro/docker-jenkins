@@ -75,12 +75,12 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases/latest | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' ''',
            returnStdout: true).trim()
        }
        script{
          env.TINI_VERSION = sh(
-           script: '''curl -s https://api.github.com/repos/krallin/tini/releases/latest | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/krallin/tini/releases | jq '.[0] .name' ''',
            returnStdout: true).trim()
        }
      }
