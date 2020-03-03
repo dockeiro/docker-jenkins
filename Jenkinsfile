@@ -12,9 +12,9 @@ pipeline {
     GITHUB_TOKEN=credentials('498b4638-2d04-4ce5-832d-8a57d01d97ac')
     EXT_USER = 'jenkinsci'
     EXT_REPO = 'jenkins'
-    EXT_VARIANT = 'debian'
+    EXT_VARIANT = 'slim'
     EXT_VERSION = 'lts'
-    MY_BRANCH = 'debian'
+    MY_BRANCH = 'slim'
     MY_USER = 'gustavo8000br'
     MY_REPO = 'docker-jenkins'
     DOCKERHUB_IMAGE = 'gustavo8000br/docker-jenkins'

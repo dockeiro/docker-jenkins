@@ -1,27 +1,11 @@
-FROM openjdk:8-jdk
+FROM openjdk:8-jdk-slim
 
-# set version label
-ARG BUILD_DATE
-ARG VERSION
-LABEL build_version="gustavo8000br version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-
-USER root
-RUN apt-get update && \
-apt-get -y install apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg2 \
-    git \
-    software-properties-common && \
-curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
-    add-apt-repository "deb https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-
-RUN apt-get update && apt-get install -y docker-ce && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl gpg && rm -rf /var/lib/apt/lists/*
 
 ARG user=jenkins
 ARG group=jenkins
-ARG uid=1001
-ARG gid=1001
+ARG uid=1000
+ARG gid=1000
 ARG http_port=8080
 ARG agent_port=50000
 ARG JENKINS_HOME=/var/jenkins_home
@@ -66,7 +50,7 @@ ENV JENKINS_VERSION ${JENKINS_VERSION:-2.204.3}
 ARG JENKINS_SHA=aa35f86e92812b511fd97f52e22b1e35965ef984f5eb60215b70b5914f9dc9ea
 
 # Can be used to customize where jenkins.war get downloaded from
-ARG JENKINS_URL=http://updates.jenkins-ci.org/download/war/${JENKINS_VERSION}/jenkins.war
+ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
 
 # could use ADD but this one does not check Last-Modified header neither does it allow to control checksum
 # see https://github.com/docker/docker/issues/8331
@@ -75,11 +59,7 @@ RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
 
 ENV JENKINS_UC https://updates.jenkins.io
 ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
-ENV JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals
 RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
-
-# add jenkins user to docker group
-RUN usermod -a -G docker ${user}
 
 # for main web interface:
 EXPOSE ${http_port}
