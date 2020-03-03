@@ -71,12 +71,12 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' | sed 's/[~,%@+;:/"]//g' ''',
            returnStdout: true).trim()
        }
        script{
          env.TINI_VERSION = sh(
-           script: '''curl -s https://api.github.com/repos/krallin/tini/releases | jq '.[0] .name' ''',
+           script: '''curl -s https://api.github.com/repos/krallin/tini/releases | jq '.[0] .name' | sed 's/[~,%@+;:/"]//g' ''',
            returnStdout: true).trim()
        }
      }
@@ -89,21 +89,6 @@ pipeline {
        }
      }
     }
-    // Sanitize the release tag and strip illegal docker or github characters
-    stage("Sanitize tag"){
-      steps{
-        script{
-          env.EXT_RELEASE_CLEAN = sh(
-            script: '''echo ${EXT_RELEASE} | sed 's/[~,%@+;:/"]//g' ''',
-            returnStdout: true).trim()
-        }
-        script{
-          env.TINI_VERSION_CLEAN = sh(
-            script: '''echo ${TINI_VERSION} | sed 's/[~,%@+;:/"]//g' ''',
-            returnStdout: true).trim()
-        }
-      }
-    }
     // If this is a '${MY_BRANCH}' build use live docker endpoints
     stage("Set ENV live build"){
       when {
@@ -113,7 +98,7 @@ pipeline {
       steps {
         script{
           env.IMAGE = env.DOCKERHUB_IMAGE
-          env.META_TAG = env.EXT_RELEASE_CLEAN + '-' + env.EXT_VERSION + '-build-' + env.MY_TAG_NUMBER
+          env.META_TAG = env.EXT_RELEASE + '-' + env.EXT_VERSION + '-build-' + env.MY_TAG_NUMBER
         }
       }
     }
@@ -127,8 +112,8 @@ pipeline {
         environment name: 'EXIT_STATUS', value: ''
       }
       steps {
-        sh "docker build --no-cache --pull -t ${IMAGE}:${EXT_VARIANT}-${META_TAG} \
-        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+        sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:${EXT_VARIANT}-${META_TAG} \
+        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -140,8 +125,8 @@ pipeline {
       parallel {
         stage('Build X86') {
           steps {
-            sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${EXT_VARIANT}-${META_TAG} \
-            --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+            sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:amd64-${EXT_VARIANT}-${META_TAG} \
+            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
           }
         }
         stage('Build ARMHF') {
@@ -161,8 +146,8 @@ pipeline {
               sh '''#! /bin/bash
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
-              sh "docker build --no-cache --pull -f Dockerfile.armhf -t ${IMAGE}:arm32v7-${EXT_VARIANT}-${META_TAG} \
-                        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+              sh "docker buildx build --platform=linux/arm --no-cache --pull -f Dockerfile.armhf -t ${IMAGE}:arm32v7-${EXT_VARIANT}-${META_TAG} \
+                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
               sh "docker tag ${IMAGE}:arm32v7-${EXT_VARIANT}-${META_TAG} $DOCKERUSER/buildcache:arm32v7-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push $DOCKERUSER/buildcache:arm32v7-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
@@ -188,8 +173,8 @@ pipeline {
               sh '''#! /bin/bash
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
-              sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${EXT_VARIANT}-${META_TAG} \
-                        --build-arg TINI_VERSION_CLEAN=${TINI_VERSION_CLEAN} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+              sh "docker buildx build --platform=linux/arm64 --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${EXT_VARIANT}-${META_TAG} \
+                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
               sh "docker tag ${IMAGE}:arm64v8-${EXT_VARIANT}-${META_TAG} $DOCKERUSER/buildcache:arm64v8-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh "docker push $DOCKERUSER/buildcache:arm64v8-${EXT_VARIANT}-${COMMIT_SHA}-${BUILD_NUMBER}"
               sh '''docker rmi \
@@ -290,25 +275,25 @@ pipeline {
       when {
         branch env.MY_BRANCH
         expression {
-          env.MY_RELEASE != env.EXT_RELEASE_CLEAN + '-build-' + env.MY_TAG_NUMBER
+          env.MY_RELEASE != env.EXT_RELEASE + '-build-' + env.MY_TAG_NUMBER
         }
         environment name: 'CHANGE_ID', value: ''
         environment name: 'EXIT_STATUS', value: ''
       }
       steps {
-        echo "Pushing New tag for current commit ${EXT_RELEASE_CLEAN}-${EXT_VARIANT}-build-${MY_TAG_NUMBER}"
+        echo "Pushing New tag for current commit ${EXT_RELEASE}-${EXT_VARIANT}-build-${MY_TAG_NUMBER}"
         sh '''curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST https://api.github.com/repos/${MY_USER}/${MY_REPO}/git/tags \
-        -d '{"tag":"'${EXT_RELEASE_CLEAN}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
+        -d '{"tag":"'${EXT_RELEASE}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
              "object": "'${COMMIT_SHA}'",\
-             "message": "Tagging Release '${EXT_RELEASE_CLEAN}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}' to '${MY_BRANCH}'",\
+             "message": "Tagging Release '${EXT_RELEASE}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}' to '${MY_BRANCH}'",\
              "type": "commit",\
-             "tagger": {"name": "Jenkins","tag_name": "'${EXT_RELEASE_CLEAN}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'","email": "gustavo8000@icloud.com","date": "'${GITHUB_DATE}'"}}' '''
+             "tagger": {"name": "Jenkins","tag_name": "'${EXT_RELEASE}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'","email": "gustavo8000@icloud.com","date": "'${GITHUB_DATE}'"}}' '''
         echo "Pushing New release for Tag"
         sh '''#! /bin/bash
               curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases/latest | jq '. |.body' | sed 's:^.\\(.*\\).$:\\1:' > releasebody.json
-              echo '{"name":"'${EXT_RELEASE_CLEAN}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
+              echo '{"name":"'${EXT_RELEASE}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
                      "target_commitish": "'${MY_BRANCH}'",\
-                     "tag_name": "'${EXT_RELEASE_CLEAN}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
+                     "tag_name": "'${EXT_RELEASE}'-'${EXT_VARIANT}'-build-'${MY_TAG_NUMBER}'",\
                      "body": "**Changes:**\\n\\n'${MY_RELEASE_NOTES}'\\n**'${EXT_REPO}' Changes:**\\n\\n' > start
               printf '","draft": false,"prerelease": false}' >> releasebody.json
               paste -d'\\0' start releasebody.json > releasebody.json.done
