@@ -179,11 +179,15 @@ pipeline {
           sh "docker manifest push --purge ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest || :"
           sh "docker manifest create ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker manifest annotate ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest --os linux --arch arm64 --variant v8"
+          sh "docker manifest push --purge ${IMAGE}:${EXT_VERSION} || :"
+          sh "docker manifest create ${IMAGE}:${EXT_VERSION} ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest"
+          sh "docker manifest annotate ${IMAGE}:${EXT_VERSION} ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest --os linux --arch arm64 --variant v8"
           sh "docker manifest push --purge ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} || :"
           sh "docker manifest create ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           sh "docker manifest annotate ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} --os linux --arch arm64 --variant v8"
           sh "docker manifest push --purge ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker manifest push --purge ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
+          sh "docker manifest push --purge ${IMAGE}:${EXT_VERSION}"
           sh '''docker rmi \
                 ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
                 ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest \
