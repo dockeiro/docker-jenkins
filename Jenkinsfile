@@ -150,6 +150,7 @@ pipeline {
           sh '''#! /bin/bash
              echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
              '''
+          sh "docker pull ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           sh "docker tag ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
