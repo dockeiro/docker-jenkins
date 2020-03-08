@@ -40,7 +40,7 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' | sed 's/[~,%@+;:/"]//g' ''',
+           script: '''curl -s http://mirrors.jenkins.io/war-stable/ | grep DIR | tail -n2 | head -n1 | sed 's/^.*href="//; s/\/".*//' ''',
            returnStdout: true).trim()
        }
        script{
@@ -82,7 +82,7 @@ pipeline {
       }
       steps {
         sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -95,7 +95,7 @@ pipeline {
         stage('Build X86') {
           steps {
             sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
           }
         }
         stage('Build ARM64') {
@@ -116,7 +116,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker buildx build --platform=linux/arm64 --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
             }
           }
         }
