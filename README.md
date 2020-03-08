@@ -11,7 +11,7 @@ This is a fully functional Jenkins server.
 # Usage
 
 ```
-docker run -p 8080:8080 -p 50000:50000 gustavo8000br/docker-jenkins:alpine-lts-latest
+docker run -p 8080:8080 -p 50000:50000 gustavo8000br/docker-jenkins:slim-lts-latest
 ```
 
 NOTE: read below the _build executors_ part for the role of the `50000` port mapping.
@@ -20,7 +20,7 @@ This will store the workspace in /var/jenkins_home. All Jenkins data lives in th
 You will probably want to make that an explicit volume so you can manage it and attach to another container for upgrades :
 
 ```
-docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home gustavo8000br/docker-jenkins:alpine-lts-latest
+docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home gustavo8000br/docker-jenkins:slim-lts-latest
 ```
 
 this will automatically create a 'jenkins_home' [docker volume](https://docs.docker.com/storage/volumes/) on the host machine, that will survive the container stop/restart/deletion.
@@ -52,7 +52,7 @@ Jenkins.instance.setNumExecutors(5)
 and `Dockerfile`
 
 ```
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 COPY executors.groovy /usr/share/jenkins/ref/init.groovy.d/executors.groovy
 ```
 
@@ -71,7 +71,7 @@ You might need to customize the JVM running Jenkins, typically to pass system pr
 variable for this purpose :
 
 ```
-docker run --name myjenkins -p 8080:8080 -p 50000:50000  --env JAVA_OPTS=-Dhudson.footerURL=http://mycompany.com  gustavo8000br/docker-jenkins:alpine-lts-latest
+docker run --name myjenkins -p 8080:8080 -p 50000:50000  --env JAVA_OPTS=-Dhudson.footerURL=http://mycompany.com  gustavo8000br/docker-jenkins:slim-lts-latest
 ```
 
 # Configuring logging
@@ -86,7 +86,7 @@ handlers=java.util.logging.ConsoleHandler
 jenkins.level=FINEST
 java.util.logging.ConsoleHandler.level=FINEST
 EOF
-docker run --name myjenkins -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djava.util.logging.config.file=/var/jenkins_home/log.properties" -v `pwd`/data:/var/jenkins_home  gustavo8000br/docker-jenkins:alpine-lts-latest
+docker run --name myjenkins -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djava.util.logging.config.file=/var/jenkins_home/log.properties" -v `pwd`/data:/var/jenkins_home  gustavo8000br/docker-jenkins:slim-lts-latest
 ```
 
 # Configuring reverse proxy
@@ -98,7 +98,7 @@ If you want to install Jenkins behind a reverse proxy with prefix, example: mysi
 
 Argument you pass to docker running the jenkins image are passed to jenkins launcher, so you can run for sample :
 ```
-docker run  gustavo8000br/docker-jenkins:alpine-lts-latest --version
+docker run  gustavo8000br/docker-jenkins:slim-lts-latest --version
 ```
 This will dump Jenkins version, just like when you run jenkins as an executable war.
 
@@ -107,7 +107,7 @@ define a derived jenkins image based on the official one with some customized se
 to force use of HTTPS with a certificate included in the image
 
 ```
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 
 COPY https.pem /var/lib/jenkins/cert
 COPY https.key /var/lib/jenkins/pk
@@ -118,12 +118,12 @@ EXPOSE 8083
 You can also change the default slave agent port for jenkins by defining `JENKINS_SLAVE_AGENT_PORT` in a sample Dockerfile.
 
 ```
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 ENV JENKINS_SLAVE_AGENT_PORT 50001
 ```
 or as a parameter to docker,
 ```
-docker run --name myjenkins -p 8080:8080 -p 50001:50001 --env JENKINS_SLAVE_AGENT_PORT=50001  gustavo8000br/docker-jenkins:alpine-lts-latest
+docker run --name myjenkins -p 8080:8080 -p 50001:50001 --env JENKINS_SLAVE_AGENT_PORT=50001  gustavo8000br/docker-jenkins:slim-lts-latest
 ```
 
 # Installing more tools
@@ -131,7 +131,7 @@ docker run --name myjenkins -p 8080:8080 -p 50001:50001 --env JENKINS_SLAVE_AGEN
 You can run your container as root - and install via apt-get, install as part of build steps via jenkins tool installers, or you can create your own Dockerfile to customise, for example:
 
 ```
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 # if we want to install via apt
 USER root
 RUN apt-get update && apt-get install -y ruby make more-thing-here
@@ -144,7 +144,7 @@ For this purpose, use `/usr/share/jenkins/ref` as a place to define the default 
 wish the target installation to look like :
 
 ```
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 COPY custom.groovy /usr/share/jenkins/ref/init.groovy.d/custom.groovy
 ```
 
@@ -194,14 +194,14 @@ There are also custom version specifiers:
 You can run the script manually in Dockerfile:
 
 ```Dockerfile
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 RUN /usr/local/bin/install-plugins.sh docker-slaves github-branch-source:1.8
 ```
 
 Furthermore it is possible to pass a file that contains this set of plugins (with or without line breaks).
 
 ```Dockerfile
-FROM gustavo8000br/docker-jenkins:alpine-lts-latest
+FROM gustavo8000br/docker-jenkins:slim-lts-latest
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
 ```
