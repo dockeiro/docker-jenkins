@@ -83,6 +83,8 @@ pipeline {
       steps {
         sh "docker build --no-cache --pull --force-rm -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
         --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+              sh "docker push ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
+              sh "docker rmi ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -96,6 +98,8 @@ pipeline {
           steps {
             sh "docker build--no-cache --pull --force-rm -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
             --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+              sh "docker push ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
+              sh "docker rmi ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           }
         }
         stage('Build ARM64') {
@@ -117,6 +121,8 @@ pipeline {
                  '''
               sh "docker build --no-cache --pull --force-rm -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
                         --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
+              sh "docker push ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
+              sh "docker rmi ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
             }
           }
         }
@@ -144,6 +150,7 @@ pipeline {
           sh '''#! /bin/bash
              echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
              '''
+          sh "docker pull ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           sh "docker tag ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
@@ -172,6 +179,8 @@ pipeline {
           sh '''#! /bin/bash
              echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
              '''
+          sh "docker pull ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
+          sh "docker pull ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           sh "docker tag ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker tag ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest"
