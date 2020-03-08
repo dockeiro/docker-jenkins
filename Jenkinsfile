@@ -83,7 +83,7 @@ pipeline {
       }
       steps {
         sh "docker build --no-cache --pull -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -96,7 +96,7 @@ pipeline {
         stage('Build X86') {
           steps {
             sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
           }
         }
         stage('Build ARM64') {
@@ -117,7 +117,7 @@ pipeline {
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
               sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
             }
           }
         }
