@@ -40,7 +40,8 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s http://mirrors.jenkins.io/war-stable/ | grep DIR | tail -n2 | head -n1 | sed 's/^.*href="//; s/\/".*//' ''',
+         //script: '''curl -s https://api.github.com/repos/${EXT_USER}/${EXT_REPO}/releases | jq '.[0] .name' | sed 's/[~,%@+;:/"]//g' ''',
+           script: '''curl -Ls https://updates.jenkins.io/stable/latestCore.txt''',
            returnStdout: true).trim()
        }
        script{
