@@ -96,7 +96,7 @@ pipeline {
       parallel {
         stage('Build X86') {
           steps {
-            sh "docker build--no-cache --pull --force-rm -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+            sh "docker build --no-cache --pull --force-rm -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
             --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
               sh "docker push ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
               sh "docker rmi ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
