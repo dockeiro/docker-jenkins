@@ -44,18 +44,25 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.204.3}
+RUN if [ -z ${JENKINS_VERSION+x} ]; then \
+	JENKINS_VERSION=$(curl -s http://mirrors.jenkins.io/war-stable/ \
+  | grep DIR | tail -n2 | head -n1 | sed 's/^.*href="//; s/\/".*//'); \
+  fi
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=aa35f86e92812b511fd97f52e22b1e35965ef984f5eb60215b70b5914f9dc9ea
+ARG JENKINS_SHA_URL=http://mirrors.jenkins-ci.org/war-stable/${JENKINS_VERSION}/jenkins.war.sha256
 
 # Can be used to customize where jenkins.war get downloaded from
-ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
+ARG JENKINS_URL=http://mirrors.jenkins-ci.org/war-stable/${JENKINS_VERSION}/jenkins.war
 
 # could use ADD but this one does not check Last-Modified header neither does it allow to control checksum
 # see https://github.com/docker/docker/issues/8331
-RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
-  && echo "${JENKINS_SHA}  /usr/share/jenkins/jenkins.war" | sha256sum -c -
+RUN echo "**** install jenkins ****" \
+  && cd /usr/share/jenkins \
+  && curl -fSL ${JENKINS_URL} -o jenkins.war \
+  && curl -fSL ${JENKINS_SHA_URL} -o jenkins.war.sha256 && sha256sum -c jenkins.war.sha256 \
+  && rm jenkins.war.sha256 \
+  && cd /
 
 ENV JENKINS_UC https://updates.jenkins.io
 ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
