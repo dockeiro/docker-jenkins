@@ -69,7 +69,7 @@ RUN if [ -z ${JENKINS_VERSION+x} ]; then \
 ARG JENKINS_SHA_URL=http://mirrors.jenkins-ci.org/war-stable/${JENKINS_VERSION}/jenkins.war.sha256
 
 # Can be used to customize where jenkins.war get downloaded from
-ARG JENKINS_URL=http://updates.jenkins-ci.org/download/war/${JENKINS_VERSION}/jenkins.war
+ARG JENKINS_URL=http://mirrors.jenkins-ci.org/war-stable/${JENKINS_VERSION}/jenkins.war
 
 # could use ADD but this one does not check Last-Modified header neither does it allow to control checksum
 # see https://github.com/docker/docker/issues/8331
