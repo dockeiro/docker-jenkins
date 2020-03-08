@@ -81,7 +81,7 @@ pipeline {
         environment name: 'EXIT_STATUS', value: ''
       }
       steps {
-        sh "docker build --no-cache --pull -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+        sh "docker build --no-cache --pull --force-rm -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
         --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
       }
     }
@@ -94,7 +94,7 @@ pipeline {
       parallel {
         stage('Build X86') {
           steps {
-            sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+            sh "docker build --no-cache --pull --force-rm -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
             --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
           }
         }
@@ -115,7 +115,7 @@ pipeline {
               sh '''#! /bin/bash
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
-              sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+              sh "docker build --no-cache --pull --force-rm -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
               --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
             }
           }
