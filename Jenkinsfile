@@ -40,7 +40,7 @@ pipeline {
      steps{
        script{
          env.EXT_RELEASE = sh(
-           script: '''curl -s http://mirrors.jenkins.io/war-stable/ | grep DIR | tail -n2 | head -n1 | sed 's/^.*href="//; s/\/".*//' ''',
+           script: '''curl -Ls https://updates.jenkins.io/stable/latestCore.txt''',
            returnStdout: true).trim()
        }
        script{
@@ -81,8 +81,8 @@ pipeline {
         environment name: 'EXIT_STATUS', value: ''
       }
       steps {
-        sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+        sh "docker build --no-cache --pull -t ${IMAGE}:${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
       }
     }
     // Build MultiArch Docker containers for push to LS Repo
@@ -94,8 +94,8 @@ pipeline {
       parallel {
         stage('Build X86') {
           steps {
-            sh "docker buildx build --platform=linux/amd64 --no-cache --pull -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+            sh "docker build --no-cache --pull -t ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+            --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
           }
         }
         stage('Build ARM64') {
@@ -115,8 +115,8 @@ pipeline {
               sh '''#! /bin/bash
                  echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
                  '''
-              sh "docker buildx build --platform=linux/arm64 --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
-                        --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} --push ."
+              sh "docker build --no-cache --pull -f Dockerfile.aarch64 -t ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} \
+              --build-arg TINI_VERSION=${TINI_VERSION} --build-arg JENKINS_VERSION=${EXT_RELEASE} --build-arg VERSION=${META_TAG} --build-arg BUILD_DATE=${GITHUB_DATE} ."
             }
           }
         }
@@ -172,8 +172,6 @@ pipeline {
           sh '''#! /bin/bash
              echo $DOCKERPASS | docker login -u $DOCKERUSER --password-stdin
              '''
-          sh "docker pull ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
-          sh "docker pull ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG}"
           sh "docker tag ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker tag ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-${META_TAG} ${IMAGE}:arm64v8-${MY_BRANCH}-${EXT_VERSION}-latest"
           sh "docker push ${IMAGE}:amd64-${MY_BRANCH}-${EXT_VERSION}-latest"
